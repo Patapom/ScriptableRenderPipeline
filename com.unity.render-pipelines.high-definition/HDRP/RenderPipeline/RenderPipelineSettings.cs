@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -25,8 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportSSR = true;
         public bool supportSSAO = true;
         public bool supportSubsurfaceScattering = true;
-        [FormerlySerializedAs("supportForwardOnly")]
-        public bool supportOnlyForward = false;
+        public bool supportForwardOnly = false;
         public bool enableUltraQualitySSS = false;
         public bool supportVolumetric = true;
 

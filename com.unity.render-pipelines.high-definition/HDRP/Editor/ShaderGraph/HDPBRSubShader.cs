@@ -7,7 +7,6 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    [FormerName("UnityEditor.ShaderGraph.HDPBRSubShader")]
     public class HDPBRSubShader : IPBRSubShader
     {
         Pass m_PassGBuffer = new Pass()
@@ -43,8 +42,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "FragInputs.worldToTangent",
                 "FragInputs.positionWS",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2"
             },
             PixelShaderSlots = new List<int>()
             {

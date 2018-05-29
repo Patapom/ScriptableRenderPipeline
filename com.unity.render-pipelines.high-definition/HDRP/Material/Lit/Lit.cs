@@ -216,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Build(HDRenderPipelineAsset hdAsset)
         {
-            PreIntegratedFGD.instance.Build();
+            PreIntegratedFGD.instance.Build( PreIntegratedFGD.BRDF_TYPE.GGX_SMITH_SCHLICK );
             LTCAreaLight.instance.Build();
 
             m_isInit = false;

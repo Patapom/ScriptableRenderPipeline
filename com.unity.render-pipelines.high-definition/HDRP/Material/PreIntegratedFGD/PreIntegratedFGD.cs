@@ -6,6 +6,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // Currently PreIntegratedFGD only have GGX, if we add another case convert it to a textureArray (like LTCArea)
     public partial class PreIntegratedFGD
     {
+		// BMAYAUX (18/05/28) Material can now specify which BRDF it uses. Several types of 
+		public enum BRDF_TYPE {
+			GGX_SMITH_SCHLICK,			// GGX NDF + Smith shadowing/masking + Schlick approximation for the Fresnel term
+			WARD_MORODER_SCHLICK,		// Moroder variation on Ward shader (i.e. Beckmann NDF) + Schlick approximation for the Fresnel term
+		}
+
         static PreIntegratedFGD s_Instance;
 
         public static PreIntegratedFGD instance
@@ -32,14 +38,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_refCounting = 0;
         }
 
-        public void Build()
+        public void Build( BRDF_TYPE _BRDFType )
         {
             Debug.Assert(m_refCounting >= 0);
 
             if (m_refCounting == 0)
             {
                 var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                m_PreIntegratedFGDMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD);
+
+				switch ( _BRDFType ) {
+					case BRDF_TYPE.GGX_SMITH_SCHLICK:
+						m_PreIntegratedFGDMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD);
+						break;
+
+					case BRDF_TYPE.WARD_MORODER_SCHLICK:
+						m_PreIntegratedFGDMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_AxFWard);
+						break;
+				}
 
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
                 m_PreIntegratedFGD.hideFlags = HideFlags.HideAndDontSave;

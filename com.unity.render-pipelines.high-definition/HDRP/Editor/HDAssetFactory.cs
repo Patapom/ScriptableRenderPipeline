@@ -105,6 +105,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // Material
                 newAsset.preIntegratedFGD = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD.shader");
+                newAsset.preIntegratedFGD_AxFWard = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD_AxFWard.shader");	// BMAYAUX (18/05/28) 
 
                 // Utilities / Core
                 newAsset.encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute");

@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportMSAA;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportSubsurfaceScattering;
-        public SerializedProperty supportOnlyForward;
+        public SerializedProperty supportForwardOnly;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportStereo;
         public SerializedProperty enableUltraQualitySSS;
@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering
             supportMSAA = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             MSAASampleCount = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
-            supportOnlyForward = root.Find((RenderPipelineSettings s) => s.supportOnlyForward);
+            supportForwardOnly = root.Find((RenderPipelineSettings s) => s.supportForwardOnly);
             supportMotionVectors = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportStereo = root.Find((RenderPipelineSettings s) => s.supportStereo);
             enableUltraQualitySSS = root.Find((RenderPipelineSettings s) => s.enableUltraQualitySSS);

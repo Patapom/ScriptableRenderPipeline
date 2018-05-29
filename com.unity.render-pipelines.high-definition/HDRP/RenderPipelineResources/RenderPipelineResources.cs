@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Material
         public Shader preIntegratedFGD;
+        public Shader preIntegratedFGD_AxFWard;	// BMAYAUX (18/05/28) 
 
         // Utilities / Core
         public ComputeShader encodeBC6HCS;

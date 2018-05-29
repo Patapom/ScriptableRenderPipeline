@@ -123,11 +123,9 @@ float4 SampleTexture2DTriplanarNormalScaleBias(TEXTURE2D_ARGS(textureName, sampl
 
         // We forbid scale in case of object space as it make no sense
         // Decompress normal ourselve
-        float4 packedNormal = SampleTexture2DTriplanarScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping);
-        float3 normalOS = packedNormal.xyz * 2.0 - 1.0;
-        float averageNormalLength = packedNormal.w; // If we used a object space normal map that store average normal, the formap is RGB (normal xyz) and A (average normal length)
+        float3 normalOS = SampleTexture2DTriplanarScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping).xyz * 2.0 - 1.0;
         // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
-        return float4(SurfaceGradientFromPerturbedNormal(uvMapping.vertexNormalWS, TransformObjectToWorldDir(normalOS)), averageNormalLength);
+        return float4(SurfaceGradientFromPerturbedNormal(uvMapping.vertexNormalWS, TransformObjectToWorldDir(normalOS)), 1.0);
     }
     else
     {
@@ -138,40 +136,25 @@ float4 SampleTexture2DTriplanarNormalScaleBias(TEXTURE2D_ARGS(textureName, sampl
             float2 derivYPlane;
             float2 derivZPlane;
             derivXplane = derivYPlane = derivZPlane = float2(0.0, 0.0);
-            float averageNormalLength = 0.0;
 
             if (uvMapping.triplanarWeights[textureNameUVLocal].x > 0.0)
-            {
-                float4 packedNormal = SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), TEXCOORD_INDEX_PLANAR_YZ, textureNameUVLocal, textureNameST, uvMapping);
-                averageNormalLength += uvMapping.triplanarWeights[textureNameUVLocal].x * packedNormal.z;
-                derivXplane = uvMapping.triplanarWeights[textureNameUVLocal].x * UnpackDerivativeNormalRGorAG(packedNormal, scale);
-            }
+                derivXplane = uvMapping.triplanarWeights[textureNameUVLocal].x * UnpackDerivativeNormalRGorAG(SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), TEXCOORD_INDEX_PLANAR_YZ, textureNameUVLocal, textureNameST, uvMapping), scale);
             if (uvMapping.triplanarWeights[textureNameUVLocal].y > 0.0)
-            {
-                float4 packedNormal = SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), TEXCOORD_INDEX_PLANAR_ZX, textureNameUVLocal, textureNameST, uvMapping);
-                averageNormalLength += uvMapping.triplanarWeights[textureNameUVLocal].y * packedNormal.z;
-                derivYPlane = uvMapping.triplanarWeights[textureNameUVLocal].y * UnpackDerivativeNormalRGorAG(packedNormal, scale);
-            }
+                derivYPlane = uvMapping.triplanarWeights[textureNameUVLocal].y * UnpackDerivativeNormalRGorAG(SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), TEXCOORD_INDEX_PLANAR_ZX, textureNameUVLocal, textureNameST, uvMapping), scale);
             if (uvMapping.triplanarWeights[textureNameUVLocal].z > 0.0)
-            {
-                float4 packedNormal = SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), TEXCOORD_INDEX_PLANAR_XY, textureNameUVLocal, textureNameST, uvMapping);
-                averageNormalLength += uvMapping.triplanarWeights[textureNameUVLocal].z * packedNormal.z;
-                derivZPlane = uvMapping.triplanarWeights[textureNameUVLocal].z * UnpackDerivativeNormalRGorAG(packedNormal, scale);
-            }
+                derivZPlane = uvMapping.triplanarWeights[textureNameUVLocal].z * UnpackDerivativeNormalRGorAG(SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), TEXCOORD_INDEX_PLANAR_XY, textureNameUVLocal, textureNameST, uvMapping), scale);
 
             // Assume derivXplane, derivYPlane and derivZPlane sampled using (z,y), (z,x) and (x,y) respectively.
             float3 volumeGrad = float3(derivZPlane.x + derivYPlane.y, derivZPlane.y + derivXplane.y, derivXplane.x + derivYPlane.x);
-            return float4(SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad), averageNormalLength);
+            return float4(SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad), 1.0);
         }
 #endif
 
-        float4 packedNormal = SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping);
-        float averageNormalLength = packedNormal.z; // If we used a tangent space normal map that store average normal, the formap is RG (normal xy) and B (average normal length)
-        float2 deriv = UnpackDerivativeNormalRGorAG(packedNormal, scale);
+        float2 deriv = UnpackDerivativeNormalRGorAG(SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping), scale);
 
         if (textureNameUV <= TEXCOORD_INDEX_UV3)
         {
-            return float4(SurfaceGradientFromTBN(deriv, uvMapping.vertexTangentWS[textureNameUV], uvMapping.vertexBitangentWS[textureNameUV]), averageNormalLength);
+            return float4(SurfaceGradientFromTBN(deriv, uvMapping.vertexTangentWS[textureNameUV], uvMapping.vertexBitangentWS[textureNameUV]), 1.0);
         }
         else
         {
@@ -183,7 +166,7 @@ float4 SampleTexture2DTriplanarNormalScaleBias(TEXTURE2D_ARGS(textureName, sampl
             else if (textureNameUV == TEXCOORD_INDEX_PLANAR_XY)
                 volumeGrad = float3(deriv.x, deriv.y, 0.0);
 
-            return float4(SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad), averageNormalLength);
+            return float4(SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad), 1.0f);
         }
     }
 }
@@ -333,17 +316,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient.xyz);
     surfaceData.coatNormalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], coatGradient.xyz);
 
-    if ((_GeometricNormalFilteringEnabled + _TextureNormalFilteringEnabled) > 0.0)
-    {
-        float geometricVariance = _GeometricNormalFilteringEnabled ? GeometricNormalVariance(input.worldToTangent[2], _SpecularAntiAliasingScreenSpaceVariance) : 0.0;
-        // gradient.w is the average normal length
-        float textureFilteringVariance = _TextureNormalFilteringEnabled ? TextureNormalVariance(gradient.w) : 0.0;
-        float coatTextureFilteringVariance = _TextureNormalFilteringEnabled ? TextureNormalVariance(coatGradient.w) : 0.0;
-
-        surfaceData.perceptualSmoothnessA = NormalFiltering(surfaceData.perceptualSmoothnessA, geometricVariance + textureFilteringVariance, _SpecularAntiAliasingThreshold);
-        surfaceData.perceptualSmoothnessB = NormalFiltering(surfaceData.perceptualSmoothnessB, geometricVariance + textureFilteringVariance, _SpecularAntiAliasingThreshold);
-        surfaceData.coatPerceptualSmoothness = NormalFiltering(surfaceData.coatPerceptualSmoothness, geometricVariance + coatTextureFilteringVariance, _SpecularAntiAliasingThreshold);
-    }
+    surfaceData.averageNormalLengthA = gradient.w;
+    surfaceData.averageNormalLengthB = coatGradient.w;
 
     // TODO: decal etc.
 
